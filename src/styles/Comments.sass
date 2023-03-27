@@ -1,5 +1,4 @@
-$dark_blue: hsl(212, 24%, 26%)
-$grayish_blue: hsl(211, 10%, 45%)
+@use 'colors' as *
 
 .Comments
     display: grid
@@ -15,9 +14,6 @@ $grayish_blue: hsl(211, 10%, 45%)
     padding: 1rem
     border-radius: 10px
     height: fit-content
-
-    *
-        // outline: 1px solid #f005
 
 .Info
     display: grid
@@ -36,3 +32,59 @@ $grayish_blue: hsl(211, 10%, 45%)
 
 .Time
     width: max-content
+
+.Content
+    line-height: 1.5
+
+.Actions
+    display: grid
+    grid-auto-flow: column
+    justify-content: space-between
+    color: $moderate_blue
+    font-size: medium
+
+    .Likes
+        display: grid
+        grid-auto-flow: column
+        align-items: center
+        gap: 0.25rem
+        background: $very_light_gray
+        border-radius: 10px
+        font-weight: 500
+
+        p
+            animation: 500ms linear infinite
+
+        img
+            padding: .75rem
+
+    .Edit
+        display: grid
+        gap: 0.5rem
+        grid-auto-flow: column
+
+        button:first-of-type
+            color: $soft_red
+
+    .Button
+        display: grid
+        grid-auto-flow: column
+        align-items: center
+        gap: 8px
+        background: none
+        border: none
+        font-size: inherit
+        font-weight: 600
+        color: inherit
+
+.Replies
+    @extend .Comments
+    border-left: 3px solid $light_gray
+    padding-left: 1rem
+
+@keyframes pop
+    0%
+        transform: scale(1)
+    50%
+        transform: scale(1.75)
+        
