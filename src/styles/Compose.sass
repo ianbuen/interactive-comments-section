@@ -1,0 +1,42 @@
+@use 'colors' as *
+
+.Compose
+    display: grid
+    background: white
+    padding: 1rem
+    border-radius: 10px
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 1.15rem
+    align-items: center
+
+    textarea
+        padding: 0.8rem 1.2rem
+        resize: none
+        font-size: inherit
+        font-family: inherit
+        min-height: 6rem
+        border-radius: 5px
+        border: 2px solid $light_gray
+        grid-column: 1 / span 2
+
+        &:focus
+            outline: 1px solid $moderate_blue
+
+        &::selection
+            background: $dark_blue
+            color: white
+
+    img
+        width: 2rem
+
+    button
+        width: fit-content
+        justify-self: end
+        background: $moderate_blue
+        padding: 1rem 2rem
+        border-radius: 10px
+        color: white
+        text-transform: uppercase
+        font-weight: 500
+        font-family: inherit
+        font-size: 1rem
