@@ -1,0 +1,38 @@
+$dark_blue: hsl(212, 24%, 26%)
+$grayish_blue: hsl(211, 10%, 45%)
+
+.Comments
+    display: grid
+    align-content: start
+    gap: 1rem
+    color: $grayish_blue
+
+.Comment
+    display: grid
+    gap: 1rem
+    align-items: center
+    background: white
+    padding: 1rem
+    border-radius: 10px
+    height: fit-content
+
+    *
+        // outline: 1px solid #f005
+
+.Info
+    display: grid
+    grid-template-columns: repeat(3, min-content)
+    align-items: center
+    gap: 1rem
+
+.Avatar
+    grid-row: 1
+    height: 2rem
+
+.Username
+    grid-row: 1
+    font-weight: 500
+    color: $dark_blue
+
+.Time
+    width: max-content
