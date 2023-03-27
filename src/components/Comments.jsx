@@ -6,6 +6,7 @@ import iconMinus from "../images/icon-minus.svg"
 import iconReply from "../images/icon-reply.svg"
 import iconDelete from "../images/icon-delete.svg"
 import iconEdit from "../images/icon-edit.svg"
+import iconSave from "../images/icon-save.svg"
 import { useStateValue } from '../StateProvider';
 import { Modal } from './Modal';
 
@@ -138,7 +139,7 @@ export const Comment = ({comment, editable}) => {
             {editable ?
                   <div className='Edit'>
                     <button className='Button' onClick={() => showDeleteDialog(id)}><img src={iconDelete} alt="delete icon" />Delete</button>
-                    <button className='Button' onClick={() => editComment(id)}><img src={iconEdit} alt="edit icon" />{editing ? 'Save' : 'Edit'}</button>
+                    <button className='Button' onClick={() => editComment(id)}><img src={editing ? iconSave : iconEdit} alt="edit icon" />{editing ? 'Save' : 'Edit'}</button>
                   </div>
               :   <button className='Button'><img src={iconReply} alt="reply icon" />Reply</button>}
           </div>
