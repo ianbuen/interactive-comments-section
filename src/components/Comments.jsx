@@ -22,13 +22,14 @@ export const Comments = () => {
   );
 };
 
-
 export const Comment = ({comment, editable}) => {
     const {id, user: {username}, createdAt, content, score, replies} = comment;
 
     const [{comments}, dispatch] = useStateValue();
     const [likes, setLikes] = useState(0);
     const [modal, setModal] = useState(null);
+    const [editing, setEditing] = useState(false);
+    const [draft, setDraft] = useState(content);
     const refLikes = useRef(null);
     const refComment = useRef(null);
 
@@ -80,6 +81,40 @@ export const Comment = ({comment, editable}) => {
       setModal(<Modal action={action} />)
     };
 
+    const editComment = (id) => {
+      setEditing(!editing);
+
+      // if editing and Save is clicked
+      if (editing) {
+          let copy = [...comments];
+
+          // find by ID among comments and replace the content
+          copy.find(comment => {
+            if (comment.id === id) {
+                comment.content = draft;
+                return comment;
+            }
+            
+            // also include nested replies
+            comment.replies.find(reply => {
+              if (reply.id === id) {
+                  reply.content = draft;
+                  return reply
+              }
+            });
+          });
+
+          // commit the new edit
+          dispatch({ type: "SET_COMMENTS", comments: copy });
+      } else {
+          setDraft(content)
+      }
+    };
+
+    const handleEdit = ({target: {value}}) => {
+      setDraft(value);
+    }
+
     return (
       <>
         <div ref={refComment} className='Comment'>
@@ -89,7 +124,9 @@ export const Comment = ({comment, editable}) => {
             <p className='Time'>{createdAt}</p>
           </div>
 
-          <p className='Content'>{content}</p>
+          {/* <p className='Content'>{content}</p> */}
+          {editing ? <textarea className='Content_Edit' value={draft} onChange={handleEdit} /> 
+            : <p className='Content'>{content}</p>}
 
           <div className='Actions'>
             <div className='Likes'>
@@ -101,7 +138,7 @@ export const Comment = ({comment, editable}) => {
             {editable ?
                   <div className='Edit'>
                     <button className='Button' onClick={() => showDeleteDialog(id)}><img src={iconDelete} alt="delete icon" />Delete</button>
-                    <button className='Button'><img src={iconEdit} alt="edit icon" />Edit</button>
+                    <button className='Button' onClick={() => editComment(id)}><img src={iconEdit} alt="edit icon" />{editing ? 'Save' : 'Edit'}</button>
                   </div>
               :   <button className='Button'><img src={iconReply} alt="reply icon" />Reply</button>}
           </div>
