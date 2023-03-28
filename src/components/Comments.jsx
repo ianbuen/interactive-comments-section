@@ -71,11 +71,11 @@ export const Comment = ({comment, editable, refCompose}) => {
 
           // add a tiny delay to match fade out effect
           setTimeout(() => {
+            refComment.current.style.opacity = 1;
             dispatch({
               type: "SET_COMMENTS",
               comments: copy,
             });
-            refComment.current.style.opacity = 1;
           }, 500); 
         },
 

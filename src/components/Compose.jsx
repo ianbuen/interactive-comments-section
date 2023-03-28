@@ -50,7 +50,9 @@ export const Compose = forwardRef((props, ref) => {
   const addComment = () => {
     ref.current.classList.remove('Invalid');
     
-    if (!draft.trim()) {
+    setDraft(draft.trim())
+
+    if (!draft) {
       setTimeout(() => {
         ref.current.classList.add('Invalid');
         ref.current.focus();
@@ -60,8 +62,6 @@ export const Compose = forwardRef((props, ref) => {
 
     // if (draft.startsWith('@'))
     //     comment.replyingTo = ""\
-
-    setDraft(draft.trim())
       
     let comment = {
       id: generateCommentID(),
