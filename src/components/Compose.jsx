@@ -24,6 +24,10 @@ export const Compose = forwardRef((props, ref) => {
       setDraft(value);
   };
 
+  const handleBlur = () => {
+      ref.current.classList.remove('Invalid');
+  }
+
   const handleKeyDown = (event) => {
     if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
@@ -45,11 +49,11 @@ export const Compose = forwardRef((props, ref) => {
 
   const addComment = () => {
     ref.current.classList.remove('Invalid');
-
     
     if (!draft.trim()) {
       setTimeout(() => {
         ref.current.classList.add('Invalid');
+        ref.current.focus();
       }, 100)
       return
     }
@@ -78,7 +82,7 @@ export const Compose = forwardRef((props, ref) => {
 
   return (
     <div className='Compose'>
-        <textarea ref={ref} placeholder='Add a comment...' value={draft} onChange={handleChange} onKeyDown={handleKeyDown} />
+        <textarea ref={ref} placeholder='Add a comment...' value={draft} onChange={handleChange} onKeyDown={handleKeyDown} onBlur={handleBlur} />
         <img src={images[username]} alt={`photo of ${username}`} />
         <button onClick={addComment}>Send</button>
     </div>
