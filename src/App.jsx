@@ -1,26 +1,27 @@
-import React, { useEffect } from 'react';
+import React, { createRef, useEffect } from 'react';
 import "./styles/App.sass";
 import data from "./data.json";
 import Comments from './components/Comments';
 import { useStateValue } from './StateProvider';
 import { Compose } from './components/Compose';
-import { Modal } from './components/Modal';
 
 export const App = () => {
 
-  const [{}, dispatch] = useStateValue();
+  const state = useStateValue();
+  const [{}, dispatch] = state;
+  const refCompose = createRef();
 
   useEffect(() => {
     dispatch({
       type: "SET_DATA",
       data: data
-    })
-  }, [data]);
+    });
+  }, []);
 
   return (
     <div className='App'>
-      <Comments />
-      <Compose />
+      <Comments refCompose={refCompose} />
+      <Compose ref={refCompose} />
     </div>
   )
 };

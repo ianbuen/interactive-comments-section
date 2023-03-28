@@ -1,25 +1,32 @@
-import React, { useEffect, useState } from 'react'
+import React, { forwardRef, useEffect, useState } from 'react'
 import "../styles/Compose.sass";
 import images from "../images.js";
 import { useStateValue } from '../StateProvider';
 
-export const Compose = () => {
+export const Compose = forwardRef((props, ref) => {
 
   const [{currentUser, comments}, dispatch] = useStateValue();
   const [draft, setDraft] = useState('');
 
   useEffect(() => {
-    console.log(comments);
-  }, [comments])
-
+    ref.current?.scrollIntoView({behavior: "smooth"});
+  }, [draft])
+  
   if (!currentUser)
-      return <h1>...</h1>
+      return <></>
 
   const { username } = currentUser;
 
   const handleChange = ({target: {value}}) => {
       setDraft(value);
   };
+
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        addComment();
+    }
+  }
 
   const generateCommentID = () => {
     // gets the latest comment ID then add 1
@@ -43,6 +50,9 @@ export const Compose = () => {
       replies: [],
     }
 
+    // if (draft.startsWith('@'))
+    //     comment.replyingTo = ""
+
     dispatch({
       type: "SET_COMMENTS",
       comments: [...comments, comment]
@@ -53,9 +63,9 @@ export const Compose = () => {
 
   return (
     <div className='Compose'>
-        <textarea placeholder='Add a comment...' value={draft} onChange={handleChange} />
+        <textarea ref={ref} placeholder='Add a comment...' value={draft} onChange={handleChange} onKeyDown={handleKeyDown} />
         <img src={images[username]} alt={`photo of ${username}`} />
         <button onClick={addComment}>Send</button>
     </div>
   )
-}
+})

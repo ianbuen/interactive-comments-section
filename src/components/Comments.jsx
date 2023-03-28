@@ -10,21 +10,25 @@ import iconSave from "../images/icon-save.svg"
 import { useStateValue } from '../StateProvider';
 import { Modal } from './Modal';
 
-export const Comments = () => {
-  const [{ currentUser, comments }, dispatch] = useStateValue();
+export const Comments = ({refCompose}) => {
+    const [{ currentUser, comments }, dispatch] = useStateValue();
 
     return (
       <div className='Comments'>
           {comments?.map((comment, i) => {
             const {user: { username }} = comment;
-            return <Comment key={i} comment={comment} editable={currentUser.username === username} />
+            const props = {
+              comment: comment,
+              editable: currentUser.username === username,
+            };
+            return <Comment key={i} comment={comment} editable={currentUser.username === username} refCompose={refCompose} />
           })}
       </div>
   );
 };
 
-export const Comment = ({comment, editable}) => {
-    const {id, user: {username}, createdAt, content, score, replies} = comment;
+export const Comment = ({comment, editable, refCompose}) => {
+    const {id, user: {username}, createdAt, content, score, replies, replyingTo} = comment;
 
     const [{comments}, dispatch] = useStateValue();
     const [likes, setLikes] = useState(0);
@@ -49,7 +53,6 @@ export const Comment = ({comment, editable}) => {
       return () => clearTimeout(timeout);
     }, [likes, refLikes]);
 
-
     const showDeleteDialog = (id) => {
       // setup modal actions
       const action = {
@@ -57,7 +60,7 @@ export const Comment = ({comment, editable}) => {
           // filter out the ID marked for deletion
           let copy = [...comments];
 
-          copy.filter(comment => {
+          copy = copy.filter(comment => {
             let replies = comment.replies.filter(reply => reply.id !== id);
             comment.replies = replies;
             return comment.id !== id
@@ -66,11 +69,13 @@ export const Comment = ({comment, editable}) => {
           // set opacity to 0, trigger transition for fade out effect
           refComment.current.style.opacity = 0;
 
+          // add a tiny delay to match fade out effect
           setTimeout(() => {
             dispatch({
               type: "SET_COMMENTS",
               comments: copy,
             });
+            refComment.current.style.opacity = 1;
           }, 500); 
         },
 
@@ -116,6 +121,12 @@ export const Comment = ({comment, editable}) => {
       setDraft(value);
     }
 
+    const composeReply = (username) => {
+      refCompose.current.scrollIntoView({ behavior: "smooth" });
+      refCompose.current.value = `@${username} `;
+      refCompose.current.focus();
+    };
+
     return (
       <>
         <div ref={refComment} className='Comment'>
@@ -125,41 +136,41 @@ export const Comment = ({comment, editable}) => {
             <p className='Time'>{createdAt}</p>
           </div>
 
-          {/* <p className='Content'>{content}</p> */}
           {editing ? <textarea className='Content_Edit' value={draft} onChange={handleEdit} /> 
-            : <p className='Content'>{content}</p>}
+            : <p className='Content'>
+                <span>{replyingTo ? `@${replyingTo} ` : ''}</span>
+                {content}
+              </p>}
 
-          <div className='Actions'>
-            <div className='Likes'>
-              <img src={iconPlus} alt="plus icon" onClick={() => setLikes(score + 1)} />
-              <p ref={refLikes}>{likes}</p>
-              <img src={iconMinus} alt="plus icon" onClick={() => setLikes(score)} />
-            </div>
-
-            {editable ?
-                  <div className='Edit'>
-                    <button className='Button' onClick={() => showDeleteDialog(id)}><img src={iconDelete} alt="delete icon" />Delete</button>
-                    <button className='Button' onClick={() => editComment(id)}><img src={editing ? iconSave : iconEdit} alt="edit icon" />{editing ? 'Save' : 'Edit'}</button>
-                  </div>
-              :   <button className='Button'><img src={iconReply} alt="reply icon" />Reply</button>}
+          <div className='Likes'>
+            <img src={iconPlus} alt="plus icon" onClick={() => setLikes(score + 1)} />
+            <p ref={refLikes}>{likes}</p>
+            <img src={iconMinus} alt="plus icon" onClick={() => setLikes(score)} />
           </div>
+
+          {editable ?
+          <div className='Edit'>
+            <button className='Button' onClick={() => showDeleteDialog(id)}><img src={iconDelete} alt="delete icon" />Delete</button>
+            <button className='Button' onClick={() => editComment(id)}><img src={editing ? iconSave : iconEdit} alt="edit icon" />{editing ? 'Save' : 'Edit'}</button>
+          </div> :
+          <button className='Button' onClick={() => composeReply(username)} ><img src={iconReply} alt="reply icon" />Reply</button>}
 
           {modal}
         </div>
         
-        {replies?.length ? <Replies replies={replies} /> : ''}
+        {replies?.length ? <Replies replies={replies} refCompose={refCompose} /> : ''}
       </>
     );
 };
 
 
-export const Replies = ({replies}) => {
+export const Replies = ({replies, refCompose}) => {
 
   const [{currentUser}] = useStateValue();
 
   return (
     <div className='Replies'>
-      {replies?.map((reply, i) => <Comment key={i} comment={reply} editable={currentUser.username === reply.user.username} />)}
+      {replies?.map((reply, i) => <Comment key={i} comment={reply} editable={currentUser.username === reply.user.username} refCompose={refCompose} />)}
     </div>
   );
 };

@@ -1,10 +1,13 @@
 @use 'colors' as *
+@use 'utils' as *
 
 .Comments
     display: grid
     align-content: start
     gap: 1rem
     color: $grayish_blue
+    max-width: 43.75rem
+    justify-self: center
 
 .Comment
     display: grid
@@ -15,6 +18,18 @@
     border-radius: 10px
     height: fit-content
     transition: opacity 250ms linear
+    grid-template-columns: 1fr 1fr
+
+    @include width(640)
+        grid-template-columns: min-content
+        column-gap: 1.25rem
+        padding: 1.25rem
+
+.Info, .Content, .Content_Edit
+    grid-column: span 2
+
+    @include width(640)
+        grid-column: 2
 
 .Info
     display: grid
@@ -37,6 +52,13 @@
 .Content
     line-height: 1.5
 
+    span
+        color: $moderate_blue
+        font-weight: 500
+
+    @include width(640)
+        grid-column: span 2
+
 .Content_Edit
     line-height: 1.5
     resize: none
@@ -44,51 +66,75 @@
     height: 10rem
     padding: 0.5rem
 
-.Actions
+    @include width(640)
+        grid-column: span 2
+        height: 7.5rem
+
+.Likes, .Button, .Edit
+    width: min-content
+
+.Likes
+    display: grid
+    font-size: medium
+    grid-auto-flow: column
+    grid-auto-columns: min-content
+    align-items: center
+    justify-items: center
+    gap: 0.25rem
+    color: $moderate_blue
+    background: $very_light_gray
+    border-radius: 10px
+    font-weight: 500
+
+    p
+        animation: 500ms linear infinite
+    img
+        padding: .75rem
+
+    @include width(640)
+        grid-auto-flow: row
+        grid-row: 1 / span 2
+        grid-column: 1
+        align-self: start
+        
+        p
+            padding-bottom: .25rem
+
+.Info, .Edit, .Button
+    @include width(640)
+        grid-row: 1
+
+.Edit
+    display: grid
+    gap: 0.5rem
+    grid-auto-flow: column
+    justify-self: end
+
+    button:first-of-type
+        color: $soft_red
+
+.Button
     display: grid
     grid-auto-flow: column
-    justify-content: space-between
+    grid-auto-columns: min-content
+    align-items: center
+    justify-self: end
+    gap: 8px
+    background: none
+    border: none
+    font-size: inherit
+    font-weight: 600
     color: $moderate_blue
-    font-size: medium
-
-    .Likes
-        display: grid
-        grid-auto-flow: column
-        align-items: center
-        gap: 0.25rem
-        background: $very_light_gray
-        border-radius: 10px
-        font-weight: 500
-
-        p
-            animation: 500ms linear infinite
-
-        img
-            padding: .75rem
-
-    .Edit
-        display: grid
-        gap: 0.5rem
-        grid-auto-flow: column
-
-        button:first-of-type
-            color: $soft_red
-
-    .Button
-        display: grid
-        grid-auto-flow: column
-        align-items: center
-        gap: 8px
-        background: none
-        border: none
-        font-size: inherit
-        font-weight: 600
-        color: inherit
 
 .Replies
     @extend .Comments
     border-left: 3px solid $light_gray
     padding-left: 1rem
+    justify-self: end
+
+    @include width(640)
+        padding-left: 2rem
+        margin-left: 2rem
 
 @keyframes pop
     0%

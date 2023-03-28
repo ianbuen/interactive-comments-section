@@ -21,10 +21,7 @@ const reducer = (state, action) => {
      
     switch(action.type) {
         case "SET_DATA": 
-            return { 
-                currentUser: action.data.currentUser, 
-                comments: action.data.comments
-            };
+            return { ...state, currentUser: action.data.currentUser, comments: action.data.comments, };
 
         case "SET_COMMENTS":
             return { ...state, comments: action.comments };
