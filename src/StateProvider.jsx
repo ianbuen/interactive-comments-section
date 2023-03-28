@@ -6,7 +6,8 @@ export const StateContext = createContext();
 // State
 export const initialState = {
     currentUser: null,
-    comments: []
+    comments: [],
+    replyTarget: null,
 };
 
 // Wrap the app and provide the data layer
@@ -25,7 +26,11 @@ const reducer = (state, action) => {
 
         case "SET_COMMENTS":
             return { ...state, comments: action.comments };
+            
+        case "SET_REPLY_DRAFT":
+            return { ...state, replyTarget: action.replyTarget };
 
+            
         default:
             return state;
     }

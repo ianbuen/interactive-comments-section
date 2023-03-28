@@ -2,10 +2,11 @@ import React, { forwardRef, useEffect, useState } from 'react'
 import "../styles/Compose.sass";
 import images from "../images.js";
 import { useStateValue } from '../StateProvider';
+import iconDelete from "../images/icon-delete.svg";
 
 export const Compose = forwardRef((props, ref) => {
 
-  const [{currentUser, comments}, dispatch] = useStateValue();
+  const [{currentUser, comments, replyTarget}, dispatch] = useStateValue();
   const [draft, setDraft] = useState('');
 
   useEffect(() => {
@@ -16,6 +17,11 @@ export const Compose = forwardRef((props, ref) => {
       return <></>
 
   const { username } = currentUser;
+
+  const discardDraft = () => {
+    setDraft('');
+    dispatch({ type: "SET_REPLY_DRAFT", replyTarget: null });
+  }
 
   const handleChange = ({target: {value}}) => {
       if (draft)
@@ -50,9 +56,7 @@ export const Compose = forwardRef((props, ref) => {
   const addComment = () => {
     ref.current.classList.remove('Invalid');
     
-    setDraft(draft.trim())
-
-    if (!draft) {
+    if (!draft.trim()) {
       setTimeout(() => {
         ref.current.classList.add('Invalid');
         ref.current.focus();
@@ -60,10 +64,8 @@ export const Compose = forwardRef((props, ref) => {
       return
     }
 
-    // if (draft.startsWith('@'))
-    //     comment.replyingTo = ""\
-      
-    let comment = {
+    // initialize props for the new comment
+    let newComment = {
       id: generateCommentID(),
       content: draft,
       createdAt: 'Today',
@@ -72,19 +74,43 @@ export const Compose = forwardRef((props, ref) => {
       replies: [],
     };
 
+    // make a deep copy of existing comments
+    let copy = [...comments]
+
+    console.log(replyTarget.id);
+    console.log(newComment);
+
+    if (replyTarget) {
+        delete newComment.replies;
+        newComment.replyingTo = replyTarget.replyingTo;
+
+        copy = copy.map(comment => {
+          if (comment.id === replyTarget.id || comment.replies.find(reply => reply.id === replyTarget.id))
+              comment.replies.push(newComment);
+          
+          return comment;
+        })
+    }
+
+    // set the copy as the newly updated comments
     dispatch({
       type: "SET_COMMENTS",
-      comments: [...comments, comment]
+      comments: copy
     });
 
-    setDraft("");
+    discardDraft();
   };
 
   return (
     <div className='Compose'>
+        {replyTarget && <p>Replying to <span>{replyTarget?.replyingTo}</span></p>}
         <textarea ref={ref} placeholder='Add a comment...' value={draft} onChange={handleChange} onKeyDown={handleKeyDown} onBlur={handleBlur} />
-        <img src={images[username]} alt={`photo of ${username}`} />
-        <button onClick={addComment}>Send</button>
+        <img className='User' src={images[username]} alt={`photo of ${username}`} />
+
+        <div className='ButtonGroup'>
+          {(draft || replyTarget) && <img className='Delete' src={iconDelete} alt="delete icon" onClick={discardDraft} />}
+          <button onClick={addComment}>Send</button>
+        </div>
     </div>
   )
 })

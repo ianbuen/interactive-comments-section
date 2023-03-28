@@ -118,13 +118,24 @@ export const Comment = ({comment, editable, refCompose}) => {
     };
 
     const handleEdit = ({target: {value}}) => {
+      console.log(value);
       setDraft(value);
     }
 
-    const composeReply = (username) => {
+    const composeReply = (id, username) => {
       refCompose.current.scrollIntoView({ behavior: "smooth" });
       refCompose.current.value = `@${username} `;
       refCompose.current.focus();
+
+      const replyTarget = {
+        id: id,
+        replyingTo: username,
+      };
+
+      dispatch({
+        type: "SET_REPLY_DRAFT",
+        replyTarget: replyTarget,
+      });
     };
 
     return (
@@ -153,7 +164,7 @@ export const Comment = ({comment, editable, refCompose}) => {
             <button className='Button' onClick={() => showDeleteDialog(id)}><img src={iconDelete} alt="delete icon" />Delete</button>
             <button className='Button' onClick={() => editComment(id)}><img src={editing ? iconSave : iconEdit} alt="edit icon" />{editing ? 'Save' : 'Edit'}</button>
           </div> :
-          <button className='Button' onClick={() => composeReply(username)} ><img src={iconReply} alt="reply icon" />Reply</button>}
+          <button className='Button' onClick={() => composeReply(id, username)} ><img src={iconReply} alt="reply icon" />Reply</button>}
 
           {modal}
         </div>
