@@ -43,3 +43,14 @@
         font-weight: 500
         font-family: inherit
         font-size: 1rem
+
+.Invalid, .Invalid:focus
+    outline: 2px solid red !important
+    animation: shake 100ms linear 2
+        
+
+@keyframes shake
+    0%
+        transform: translateX(1%)
+    25%, 75%
+        transform: translateX(-1%)

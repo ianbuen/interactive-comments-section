@@ -18,6 +18,9 @@ export const Compose = forwardRef((props, ref) => {
   const { username } = currentUser;
 
   const handleChange = ({target: {value}}) => {
+      if (draft)
+          ref.current.classList.remove('Invalid');
+
       setDraft(value);
   };
 
@@ -41,6 +44,21 @@ export const Compose = forwardRef((props, ref) => {
   };
 
   const addComment = () => {
+    ref.current.classList.remove('Invalid');
+
+    
+    if (!draft.trim()) {
+      setTimeout(() => {
+        ref.current.classList.add('Invalid');
+      }, 100)
+      return
+    }
+
+    // if (draft.startsWith('@'))
+    //     comment.replyingTo = ""\
+
+    setDraft(draft.trim())
+      
     let comment = {
       id: generateCommentID(),
       content: draft,
@@ -48,10 +66,7 @@ export const Compose = forwardRef((props, ref) => {
       score: 0,
       user: currentUser,
       replies: [],
-    }
-
-    // if (draft.startsWith('@'))
-    //     comment.replyingTo = ""
+    };
 
     dispatch({
       type: "SET_COMMENTS",
