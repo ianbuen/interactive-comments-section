@@ -23,6 +23,9 @@
         border: 2px solid $light_gray
         grid-column: 1 / span 2
 
+        &:hover
+            cursor: pointer
+
         &:focus
             outline: 1px solid $moderate_blue
 
@@ -58,9 +61,11 @@
         font-weight: 500
         font-family: inherit
         font-size: 1rem
+        transition: opacity 100ms linear
         
         &:hover
             cursor: pointer
+            opacity: 0.5
 
     p
         color: $grayish_blue

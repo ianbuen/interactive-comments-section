@@ -91,6 +91,9 @@
     img
         padding: .75rem
 
+        &:hover
+            cursor: pointer
+
     @include width(640)
         grid-auto-flow: row
         grid-row: 1 / span 2
@@ -125,6 +128,11 @@
     font-size: inherit
     font-weight: 600
     color: $moderate_blue
+    transition: opacity 100ms linear
+
+    &:hover
+        cursor: pointer
+        opacity: 0.5
 
 .Replies
     @extend .Comments
