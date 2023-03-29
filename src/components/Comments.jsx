@@ -36,7 +36,6 @@ export const Comment = ({comment, editable}) => {
     const [likes, setLikes] = useState(0);
     const [modal, setModal] = useState(null);
     const [editing, setEditing] = useState(false);
-    const [text, setText] = useState(content);
     const [replyTarget, setReplyTarget] = useState(null)
 
     const refLikes = useRef(null);
@@ -106,35 +105,29 @@ export const Comment = ({comment, editable}) => {
       setEditing(!editing);
 
       // if editing and Save is clicked
-      if (editing) {
-          let copy = [...comments];
+      // if (editing) {
+      //     let copy = [...comments];
 
-          // find by ID among comments and replace the content
-          copy.find(comment => {
-            if (comment.id === id) {
-                comment.content = text;
-                return comment;
-            }
+      //     // find by ID among comments and replace the content
+      //     copy.find(comment => {
+      //       if (comment.id === id) {
+      //           comment.content = text;
+      //           return comment;
+      //       }
             
-            // also include nested replies
-            comment.replies.find(reply => {
-              if (reply.id === id) {
-                  reply.content = text;
-                  return reply
-              }
-            });
-          });
+      //       // also include nested replies
+      //       comment.replies.find(reply => {
+      //         if (reply.id === id) {
+      //             reply.content = '';
+      //             return reply;
+      //         }
+      //       });
+      //     });
 
-          // commit the new edit
-          dispatch({ type: "SET_COMMENTS", comments: copy });
-      } else {
-          setText(content)
-      }
+      //     // commit the new edit
+      //     dispatch({ type: "SET_COMMENTS", comments: copy });
+      // }
     };
-
-    const handleEdit = ({target: {value}}) => {
-      setText(value);
-    }
     
     const toggleReplyForm = (id, username) => {
       
@@ -157,7 +150,8 @@ export const Comment = ({comment, editable}) => {
             <p className='Time'>{createdAt}</p>
           </div>
 
-          {editing ? <textarea  className='Content_Edit' value={text} onChange={handleEdit} /> 
+          {/* {editing ? <textarea  className='Content_Edit' value={text} onChange={handleEdit} />  */}
+          {editing ? <Compose ref={refCompose} buttonText="Update" textToEdit={content} />
             : <p className='Content'>
                 <span>{replyingTo ? `@${replyingTo} ` : ''}</span>
                 {content}
@@ -172,7 +166,7 @@ export const Comment = ({comment, editable}) => {
           {editable ?
           <div className='Edit'>
             <button className='Button' onClick={() => showDeleteDialog(id)}><img src={iconDelete} alt="delete icon" />Delete</button>
-            <button className='Button' onClick={() => editComment(id)}><img src={editing ? iconSave : iconEdit} alt="edit icon" />{editing ? 'Save' : 'Edit'}</button>
+            <button className='Button' onClick={() => editComment(id)}><img src={iconEdit} alt="edit icon" />Edit</button>
           </div> :
           <button className='Button' onClick={() => toggleReplyForm(id, username)} ><img src={iconReply} alt="reply icon" />Reply</button>}
 
@@ -181,7 +175,7 @@ export const Comment = ({comment, editable}) => {
 
         {replyTarget && <Compose ref={refCompose} buttonText="Reply" replyTarget={[replyTarget, setReplyTarget]} />}
         
-        {replies?.length ? <Replies replies={replies} refCompose={refCompose} /> : ''}
+        {replies?.length ? <Replies replies={replies} /> : ''}
       </>
     );
 };

@@ -20,6 +20,21 @@
     transition: opacity 250ms linear
     grid-template-columns: 1fr 1fr
 
+    .Compose
+        grid-column: span 2
+        column-gap: 0
+        padding: 0
+
+        textarea
+            grid-column: 1 / span 2
+
+        img
+            display: none
+
+        button
+            grid-column: 2
+            grid-row: 2
+
     @include width(640)
         grid-template-columns: min-content
         column-gap: 1.25rem
@@ -60,6 +75,7 @@
 
 .Content
     line-height: 1.5
+    word-break: break-word
 
     span
         color: $moderate_blue

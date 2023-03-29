@@ -21,7 +21,7 @@ export const App = () => {
   return (
     <div className='App'>
       <Comments />
-      <Compose />
+      <Compose ref={refCompose} />
     </div>
   )
 };

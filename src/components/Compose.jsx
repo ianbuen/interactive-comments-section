@@ -5,12 +5,12 @@ import { useStateValue } from '../StateProvider';
 import iconDelete from "../images/icon-delete.svg";
 import { fadeOut, parent } from '../utils';
 
-export const Compose = forwardRef(({buttonText, replyTarget}, ref) => {
+export const Compose = forwardRef(({buttonText, replyTarget, textToEdit}, ref) => {
   
   // Context
   const [{currentUser, comments}, dispatch] = useStateValue();
   
-  // Component States
+  // Component States / Refs
   const [draft, setDraft] = useState('');
 
   const resetReply = () => {
@@ -21,9 +21,13 @@ export const Compose = forwardRef(({buttonText, replyTarget}, ref) => {
   };
   
   useEffect(() => {
-    ref?.current.focus();
+    ref?.current?.focus();
   }, [ref])
-  
+
+  useEffect(() => {
+    setDraft(textToEdit);
+  }, [textToEdit]);
+
   useEffect(() => {
     resetReply();
   }, [replyTarget])
@@ -33,13 +37,13 @@ export const Compose = forwardRef(({buttonText, replyTarget}, ref) => {
 
   const { username: user } = currentUser;
       
-  const clearDraft = () => {
-    setDraft('');
-  } 
+  const clearDraft = () => setDraft('');
 
-  const handleChange = ({target: {value}}) => {
+  const handleChange = (event) => {
 
-      let text = value;
+      resizeTextArea(event);
+
+      let text = event.target.value;
 
       if (draft)
           ref?.current.classList.remove('Invalid');
@@ -51,7 +55,20 @@ export const Compose = forwardRef(({buttonText, replyTarget}, ref) => {
       ref?.current.classList.remove('Invalid');
   }
 
+  const resizeTextArea = (event) => {
+    event.target.style.height = '0px';
+
+    const { scrollHeight } = event.target;
+    
+    event.target.style.height = scrollHeight > 175 ? '175px' : `${scrollHeight}px`;
+  };
+
   const handleKeyDown = (event) => {
+
+    resizeTextArea(event);
+
+    if (draft.length < 50)
+        event.target.style.height = 0;
 
     if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
@@ -83,19 +100,20 @@ export const Compose = forwardRef(({buttonText, replyTarget}, ref) => {
           fadeOut(parent(ref), () => setReplyTarget(null));
       }
   };
-
+  
   const addComment = () => {
     const setInvalid = () => {
       setTimeout(() => {
-        ref?.current.classList.add('Invalid');
-        ref?.current.focus();
+        ref?.current?.classList.add('Invalid');
+        ref?.current?.focus();
         resetReply();
       }, 100)
     };
-
+    
     ref?.current.classList.remove('Invalid');
     
-    if (!draft.trim()) {
+    if (!draft?.trim()) {
+      console.log('INVALID', ref);
       setInvalid();
       return;
     }
@@ -112,6 +130,11 @@ export const Compose = forwardRef(({buttonText, replyTarget}, ref) => {
 
     // make a deep copy of existing comments
     let copy = [...comments]
+
+    if (textToEdit) {
+        setInvalid();
+        return
+    }
 
     if (replyTarget) {
         const [{ id, username }, setReplyTarget] = replyTarget;
@@ -153,4 +176,4 @@ export const Compose = forwardRef(({buttonText, replyTarget}, ref) => {
         <button onClick={addComment}>{buttonText || 'Send'}</button>
     </div>
   )
-})
+});
