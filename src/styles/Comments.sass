@@ -33,21 +33,30 @@
 
 .Info
     display: grid
-    grid-template-columns: repeat(3, min-content)
+    grid-template-columns: repeat(4, max-content)
     align-items: center
     gap: 1rem
 
 .Avatar
-    grid-row: 1
     height: 2rem
 
 .Username
-    grid-row: 1
     font-weight: 500
     color: $dark_blue
 
 .Time
     width: max-content
+
+.You
+    background: $moderate_blue
+    color: white
+    font-size: .8125rem
+    text-align: center
+    padding: .25rem .3125rem
+    border-radius: 2px
+    font-weight: 500
+    display: inline
+    margin-left: .3125rem
 
 .Content
     line-height: 1.5
@@ -64,11 +73,13 @@
     resize: none
     font-family: inherit
     height: 10rem
-    padding: 0.5rem
+    padding: 0.5rem 1rem
+    border-radius: 8px
+    border: 2px solid $light_gray
 
     @include width(640)
         grid-column: span 2
-        height: 7.5rem
+        padding: 0.8rem 1.2rem
 
 .Likes, .Button, .Edit
     width: min-content

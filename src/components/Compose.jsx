@@ -3,42 +3,63 @@ import "../styles/Compose.sass";
 import images from "../images.js";
 import { useStateValue } from '../StateProvider';
 import iconDelete from "../images/icon-delete.svg";
+import { fadeOut, parent } from '../utils';
 
-export const Compose = forwardRef((props, ref) => {
-
-  const [{currentUser, comments, replyTarget}, dispatch] = useStateValue();
+export const Compose = forwardRef(({buttonText, replyTarget}, ref) => {
+  
+  // Context
+  const [{currentUser, comments}, dispatch] = useStateValue();
+  
+  // Component States
   const [draft, setDraft] = useState('');
 
-  useEffect(() => {
-    ref.current?.scrollIntoView({behavior: "smooth"});
-  }, [draft])
+  const resetReply = () => {
+    if (replyTarget) {
+      const [{ username }] = replyTarget;
+      setDraft(`@${username} `);
+    }
+  };
   
+  useEffect(() => {
+    ref?.current.focus();
+  }, [ref])
+  
+  useEffect(() => {
+    resetReply();
+  }, [replyTarget])
+
   if (!currentUser)
       return <></>
 
-  const { username } = currentUser;
-
-  const discardDraft = () => {
+  const { username: user } = currentUser;
+      
+  const clearDraft = () => {
     setDraft('');
-    dispatch({ type: "SET_REPLY_DRAFT", replyTarget: null });
-  }
+  } 
 
   const handleChange = ({target: {value}}) => {
-      if (draft)
-          ref.current.classList.remove('Invalid');
 
-      setDraft(value);
+      let text = value;
+
+      if (draft)
+          ref?.current.classList.remove('Invalid');
+
+      setDraft(text);
   };
 
   const handleBlur = () => {
-      ref.current.classList.remove('Invalid');
+      ref?.current.classList.remove('Invalid');
   }
 
   const handleKeyDown = (event) => {
+
     if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
         addComment();
     }
+
+    if (event.key === "Escape")
+        cancelCompose();
   }
 
   const generateCommentID = () => {
@@ -53,15 +74,30 @@ export const Compose = forwardRef((props, ref) => {
     return id + 1;
   };
 
+  const cancelCompose = async () => {
+      clearDraft();
+
+      // if reply form is active, fade out and close the form by setting reply target to null
+      if (replyTarget) {
+          const [{}, setReplyTarget] = replyTarget;
+          fadeOut(parent(ref), () => setReplyTarget(null));
+      }
+  };
+
   const addComment = () => {
-    ref.current.classList.remove('Invalid');
+    const setInvalid = () => {
+      setTimeout(() => {
+        ref?.current.classList.add('Invalid');
+        ref?.current.focus();
+        resetReply();
+      }, 100)
+    };
+
+    ref?.current.classList.remove('Invalid');
     
     if (!draft.trim()) {
-      setTimeout(() => {
-        ref.current.classList.add('Invalid');
-        ref.current.focus();
-      }, 100)
-      return
+      setInvalid();
+      return;
     }
 
     // initialize props for the new comment
@@ -77,40 +113,44 @@ export const Compose = forwardRef((props, ref) => {
     // make a deep copy of existing comments
     let copy = [...comments]
 
-    console.log(replyTarget.id);
-    console.log(newComment);
-
     if (replyTarget) {
+        const [{ id, username }, setReplyTarget] = replyTarget;
+
         delete newComment.replies;
-        newComment.replyingTo = replyTarget.replyingTo;
+        newComment.replyingTo = username;
+        newComment.content = draft.replace(`@${username}`, '').trim();
+
+        if (!newComment.content || newComment.content.match(/@[a-z0-9]*/gi)) {
+            setInvalid();
+            return;
+        }
 
         copy = copy.map(comment => {
-          if (comment.id === replyTarget.id || comment.replies.find(reply => reply.id === replyTarget.id))
+          if (comment.id === id || comment.replies.find(reply => reply.id === id))
               comment.replies.push(newComment);
           
           return comment;
         })
+
+        setReplyTarget(null);
     }
 
-    // set the copy as the newly updated comments
-    dispatch({
-      type: "SET_COMMENTS",
-      comments: copy
-    });
+    else
+        copy = [...copy, newComment]
 
-    discardDraft();
+    // commit the new list of comments to Context
+    dispatch({ type: "SET_COMMENTS", comments: copy });
+
+    // finally, reset after creating comment
+    clearDraft();
   };
 
   return (
     <div className='Compose'>
-        {replyTarget && <p>Replying to <span>{replyTarget?.replyingTo}</span></p>}
         <textarea ref={ref} placeholder='Add a comment...' value={draft} onChange={handleChange} onKeyDown={handleKeyDown} onBlur={handleBlur} />
-        <img className='User' src={images[username]} alt={`photo of ${username}`} />
+        <img className='User' src={images[user]} alt={`photo of ${user}`} />
 
-        <div className='ButtonGroup'>
-          {(draft || replyTarget) && <img className='Delete' src={iconDelete} alt="delete icon" onClick={discardDraft} />}
-          <button onClick={addComment}>Send</button>
-        </div>
+        <button onClick={addComment}>{buttonText || 'Send'}</button>
     </div>
   )
 })

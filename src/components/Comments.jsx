@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { createRef, useEffect, useRef, useState } from 'react';
 import "../styles/Comments.sass";
 import images from '../images';
 import iconPlus from "../images/icon-plus.svg"
@@ -9,8 +9,10 @@ import iconEdit from "../images/icon-edit.svg"
 import iconSave from "../images/icon-save.svg"
 import { useStateValue } from '../StateProvider';
 import { Modal } from './Modal';
+import { Compose } from "./Compose";
+import { fadeOut, parent } from '../utils';
 
-export const Comments = ({refCompose}) => {
+export const Comments = () => {
     const [{ currentUser, comments }, dispatch] = useStateValue();
 
     return (
@@ -21,22 +23,25 @@ export const Comments = ({refCompose}) => {
               comment: comment,
               editable: currentUser.username === username,
             };
-            return <Comment key={i} comment={comment} editable={currentUser.username === username} refCompose={refCompose} />
+            return <Comment key={i} comment={comment} editable={currentUser.username === username} />
           })}
       </div>
   );
 };
 
-export const Comment = ({comment, editable, refCompose}) => {
+export const Comment = ({comment, editable}) => {
     const {id, user: {username}, createdAt, content, score, replies, replyingTo} = comment;
 
-    const [{comments}, dispatch] = useStateValue();
+    const [{currentUser, comments}, dispatch] = useStateValue();
     const [likes, setLikes] = useState(0);
     const [modal, setModal] = useState(null);
     const [editing, setEditing] = useState(false);
-    const [draft, setDraft] = useState(content);
+    const [text, setText] = useState(content);
+    const [replyTarget, setReplyTarget] = useState(null)
+
     const refLikes = useRef(null);
     const refComment = useRef(null);
+    const refCompose = createRef();
 
     useEffect(() => {
       setLikes(score);
@@ -44,7 +49,7 @@ export const Comment = ({comment, editable, refCompose}) => {
 
     // trigger pop animation when like count changes
     useEffect(() => {
-      refLikes.current.style.animationName = "pop";
+      // refLikes.current.style.animationName = "pop";
 
       const timeout = setTimeout(() => {
         refLikes.current.style.animationName = "";
@@ -52,6 +57,14 @@ export const Comment = ({comment, editable, refCompose}) => {
 
       return () => clearTimeout(timeout);
     }, [likes, refLikes]);
+
+    const updateLikes = (score) => {
+      setLikes(count => {
+        if (count !== score)
+            refLikes.current.style.animationName = "pop";
+        return score;
+      });
+    };
 
     const showDeleteDialog = (id) => {
       // setup modal actions
@@ -76,6 +89,8 @@ export const Comment = ({comment, editable, refCompose}) => {
               type: "SET_COMMENTS",
               comments: copy,
             });
+
+            setModal(null);
           }, 500); 
         },
 
@@ -97,14 +112,14 @@ export const Comment = ({comment, editable, refCompose}) => {
           // find by ID among comments and replace the content
           copy.find(comment => {
             if (comment.id === id) {
-                comment.content = draft;
+                comment.content = text;
                 return comment;
             }
             
             // also include nested replies
             comment.replies.find(reply => {
               if (reply.id === id) {
-                  reply.content = draft;
+                  reply.content = text;
                   return reply
               }
             });
@@ -113,29 +128,21 @@ export const Comment = ({comment, editable, refCompose}) => {
           // commit the new edit
           dispatch({ type: "SET_COMMENTS", comments: copy });
       } else {
-          setDraft(content)
+          setText(content)
       }
     };
 
     const handleEdit = ({target: {value}}) => {
-      console.log(value);
-      setDraft(value);
+      setText(value);
     }
-
-    const composeReply = (id, username) => {
-      refCompose.current.scrollIntoView({ behavior: "smooth" });
-      refCompose.current.value = `@${username} `;
-      refCompose.current.focus();
-
-      const replyTarget = {
-        id: id,
-        replyingTo: username,
-      };
-
-      dispatch({
-        type: "SET_REPLY_DRAFT",
-        replyTarget: replyTarget,
-      });
+    
+    const toggleReplyForm = (id, username) => {
+      
+      if (replyTarget)
+          fadeOut(parent(refCompose), () => setReplyTarget(null))
+          
+      else
+          setReplyTarget({ id: id, username: username })
     };
 
     return (
@@ -143,20 +150,23 @@ export const Comment = ({comment, editable, refCompose}) => {
         <div ref={refComment} className='Comment'>
           <div className='Info'>
             <img className='Avatar' src={images[username]} alt={`photo of ${username}`} />
-            <h1 className='Username'>{username}</h1>
+            <h1 className='Username'>
+                {username} 
+                {username === currentUser.username && <span className='You'>you</span>}
+            </h1>
             <p className='Time'>{createdAt}</p>
           </div>
 
-          {editing ? <textarea className='Content_Edit' value={draft} onChange={handleEdit} /> 
+          {editing ? <textarea  className='Content_Edit' value={text} onChange={handleEdit} /> 
             : <p className='Content'>
                 <span>{replyingTo ? `@${replyingTo} ` : ''}</span>
                 {content}
               </p>}
 
           <div className='Likes'>
-            <img src={iconPlus} alt="plus icon" onClick={() => setLikes(score + 1)} />
+            <img src={iconPlus} alt="plus icon" onClick={() => updateLikes(score + 1)} />
             <p ref={refLikes}>{likes}</p>
-            <img src={iconMinus} alt="plus icon" onClick={() => setLikes(score)} />
+            <img src={iconMinus} alt="plus icon" onClick={() => updateLikes(score)} />
           </div>
 
           {editable ?
@@ -164,10 +174,12 @@ export const Comment = ({comment, editable, refCompose}) => {
             <button className='Button' onClick={() => showDeleteDialog(id)}><img src={iconDelete} alt="delete icon" />Delete</button>
             <button className='Button' onClick={() => editComment(id)}><img src={editing ? iconSave : iconEdit} alt="edit icon" />{editing ? 'Save' : 'Edit'}</button>
           </div> :
-          <button className='Button' onClick={() => composeReply(id, username)} ><img src={iconReply} alt="reply icon" />Reply</button>}
+          <button className='Button' onClick={() => toggleReplyForm(id, username)} ><img src={iconReply} alt="reply icon" />Reply</button>}
 
           {modal}
         </div>
+
+        {replyTarget && <Compose ref={refCompose} buttonText="Reply" replyTarget={[replyTarget, setReplyTarget]} />}
         
         {replies?.length ? <Replies replies={replies} refCompose={refCompose} /> : ''}
       </>
@@ -175,13 +187,13 @@ export const Comment = ({comment, editable, refCompose}) => {
 };
 
 
-export const Replies = ({replies, refCompose}) => {
+export const Replies = ({replies}) => {
 
   const [{currentUser}] = useStateValue();
 
   return (
     <div className='Replies'>
-      {replies?.map((reply, i) => <Comment key={i} comment={reply} editable={currentUser.username === reply.user.username} refCompose={refCompose} />)}
+      {replies?.map((reply, i) => <Comment key={i} comment={reply} editable={currentUser.username === reply.user.username} />)}
     </div>
   );
 };

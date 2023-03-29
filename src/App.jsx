@@ -20,8 +20,8 @@ export const App = () => {
 
   return (
     <div className='App'>
-      <Comments refCompose={refCompose} />
-      <Compose ref={refCompose} />
+      <Comments />
+      <Compose />
     </div>
   )
 };

@@ -12,6 +12,9 @@
     max-width: 43.75rem
     width: 100%
     justify-self: center
+    transition: opacity 100ms linear
+    animation: slide-down 200ms linear
+    transform-origin: top
 
     textarea
         padding: 0.8rem 1.2rem
@@ -33,23 +36,14 @@
             background: $dark_blue
             color: white
 
-    .ButtonGroup
-        display: grid
-        grid-auto-flow: column
-        grid-auto-columns: min-content
-        align-items: center
-        justify-content: end
-        gap: 1.5rem
-
-    .Delete
-        justify-self: end
-        width: 1.25rem
-
-        &:hover
-            cursor: pointer
+        @include width(640)
+            grid-column: 2
 
     .User
         width: 2rem
+
+        @include width(640)
+            grid-column: 1
 
     button
         width: fit-content
@@ -62,22 +56,22 @@
         font-family: inherit
         font-size: 1rem
         transition: opacity 100ms linear
+        justify-self: end
         
         &:hover
             cursor: pointer
             opacity: 0.5
 
-    p
-        color: $grayish_blue
-        grid-row: 1
-        grid-column: 1 / span 2
-
-        span
-            color: $dark_blue
-            font-weight: 500
+        @include width(640)
+            grid-column: 3
 
     @include width(640)
         padding: 1.25rem
+        grid-template-columns: min-content auto min-content
+        align-items: start
+
+        *
+            grid-row: 1
 
 .Invalid, .Invalid:focus
     outline: 2px solid red !important
@@ -89,3 +83,13 @@
         transform: translateX(1%)
     25%, 75%
         transform: translateX(-1%)
+
+@keyframes slide-down
+    0%
+        opacity: 0
+        transform: scaleY(0%)
+    50%
+        transform: scale(110%)
+    100%
+        opacity: 1
+        transform: scale(100%)
