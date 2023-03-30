@@ -2,7 +2,6 @@ import React, { forwardRef, useEffect, useState } from 'react'
 import "../styles/Compose.sass";
 import images from "../images.js";
 import { useStateValue } from '../StateProvider';
-import iconDelete from "../images/icon-delete.svg";
 import { fadeOut, parent } from '../utils';
 
 export const Compose = forwardRef(({buttonText, replyTarget, textToEdit}, ref) => {
@@ -14,23 +13,27 @@ export const Compose = forwardRef(({buttonText, replyTarget, textToEdit}, ref) =
   const [draft, setDraft] = useState('');
 
   const resetReply = () => {
+    
     if (replyTarget) {
       const [{ username }] = replyTarget;
       setDraft(`@${username} `);
     }
+
+    if (textToEdit) {
+      const { comment: {content, replyingTo} } = textToEdit;
+      setDraft(`${replyingTo ? `@${replyingTo} ` : ''}${content}`);
+    }
   };
   
   useEffect(() => {
+    return; // optional
     ref?.current?.focus();
+    ref?.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [ref])
 
   useEffect(() => {
-    setDraft(textToEdit);
-  }, [textToEdit]);
-
-  useEffect(() => {
     resetReply();
-  }, [replyTarget])
+  }, [replyTarget, textToEdit])
 
   if (!currentUser)
       return <></>
@@ -76,10 +79,11 @@ export const Compose = forwardRef(({buttonText, replyTarget, textToEdit}, ref) =
     }
 
     if (event.key === "Escape")
-        cancelCompose();
+        exitCompose();
   }
 
   const generateCommentID = () => {
+
     // gets the latest comment ID then add 1
     let id = 0;
 
@@ -91,7 +95,7 @@ export const Compose = forwardRef(({buttonText, replyTarget, textToEdit}, ref) =
     return id + 1;
   };
 
-  const cancelCompose = async () => {
+  const exitCompose = async () => {
       clearDraft();
 
       // if reply form is active, fade out and close the form by setting reply target to null
@@ -99,9 +103,16 @@ export const Compose = forwardRef(({buttonText, replyTarget, textToEdit}, ref) =
           const [{}, setReplyTarget] = replyTarget;
           fadeOut(parent(ref), () => setReplyTarget(null));
       }
+
+      // turn off edit mode if editing
+      if (textToEdit) {
+          const { setEditing } = textToEdit;
+          setEditing(false);
+      }
   };
   
   const addComment = () => {
+
     const setInvalid = () => {
       setTimeout(() => {
         ref?.current?.classList.add('Invalid');
@@ -113,29 +124,56 @@ export const Compose = forwardRef(({buttonText, replyTarget, textToEdit}, ref) =
     ref?.current.classList.remove('Invalid');
     
     if (!draft?.trim()) {
-      console.log('INVALID', ref);
-      setInvalid();
-      return;
+        setInvalid();
+        return;
     }
 
+    // make a deep copy of existing comments
+    let copy = [...comments];
+
+    const commitChanges = () => {
+      // commit the new list of comments to Context
+      dispatch({ type: "SET_COMMENTS", comments: copy });
+      // finally, reset after creating comment
+      exitCompose();
+    };
+
+    // if in Edit Mode
+    if (textToEdit) {
+        const { comment: { id, replyingTo } } = textToEdit;
+
+        // search through comments+replies, and replace the content
+        copy = copy.map(entry => {
+            // comment search
+            if (entry.id === id)
+                entry.content = draft;
+
+            // reply search
+            entry.replies.find(reply => {
+                if (reply.id === id) {
+                  reply.content = draft.replaceAll(`@${replyingTo}`, '').trim();;
+                  return;
+                }
+            })
+
+            return entry;
+        });
+
+        return commitChanges();
+    }
+
+    // For creating new comment...
     // initialize props for the new comment
     let newComment = {
       id: generateCommentID(),
       content: draft,
-      createdAt: 'Today',
+      createdAt: new Date(),
       score: 0,
       user: currentUser,
       replies: [],
-    };
+    }; 
 
-    // make a deep copy of existing comments
-    let copy = [...comments]
-
-    if (textToEdit) {
-        setInvalid();
-        return
-    }
-
+    // If in Reply Mode
     if (replyTarget) {
         const [{ id, username }, setReplyTarget] = replyTarget;
 
@@ -153,7 +191,7 @@ export const Compose = forwardRef(({buttonText, replyTarget, textToEdit}, ref) =
               comment.replies.push(newComment);
           
           return comment;
-        })
+        });
 
         setReplyTarget(null);
     }
@@ -161,11 +199,7 @@ export const Compose = forwardRef(({buttonText, replyTarget, textToEdit}, ref) =
     else
         copy = [...copy, newComment]
 
-    // commit the new list of comments to Context
-    dispatch({ type: "SET_COMMENTS", comments: copy });
-
-    // finally, reset after creating comment
-    clearDraft();
+    commitChanges();
   };
 
   return (
